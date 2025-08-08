@@ -1,21 +1,45 @@
-const Material = require('../models/Material');
+const Material = require("../models/Material");
+
+// Function to generate 1–5 random batches
+const getRandomBatches = () => {
+  const batchCount = Math.floor(Math.random() * 5) + 1; // 1–5 batches
+  const batches = [];
+
+  for (let i = 0; i < batchCount; i++) {
+    batches.push({
+      quantity: Math.floor(Math.random() * 451) + 50, // Quantity: 50–500
+      unitPrice: parseFloat((Math.random() * 490 + 10).toFixed(2)), // ₹10–₹500
+      addedDate: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000) // random date within last 30 days
+    });
+  }
+
+  return batches;
+};
 
 const seedMaterials = async () => {
-    const materials = [
-        { name: 'Material A', description: 'Description A', quantity: 100 },
-        { name: 'Material B', description: 'Description B', quantity: 200 },
-        { name: 'Material C', description: 'Description C', quantity: 300 },
-        { name: 'Material D', description: 'Description D', quantity: 400 },
-        { name: 'Material E', description: 'Description E', quantity: 500 },
-        { name: 'Material F', description: 'Description F', quantity: 600 },
-        { name: 'Material G', description: 'Description G', quantity: 700 },
-        { name: 'Material H', description: 'Description H', quantity: 800 },
-        { name: 'Material I', description: 'Description I', quantity: 900 },
-        { name: 'Material J', description: 'Description J', quantity: 1000 },
-    ];
+  try {
     await Material.deleteMany({});
+    console.log("🧹 Cleared existing materials");
+
+    const materials = [];
+
+    for (let i = 1; i <= 100; i++) {
+      const batches = getRandomBatches();
+      const available_qty = batches.reduce((sum, batch) => sum + batch.quantity, 0);
+
+      materials.push({
+        name: `Material ${i}`,
+        description: `Description for Material ${i}`,
+        batches,
+        available_qty // 👈 Manually set, since insertMany bypasses pre('save')
+      });
+    }
+
     await Material.insertMany(materials);
-    console.log('Materials seeded');
+    console.log("✅ 100 materials with random batches and correct available_qty seeded");
+  } catch (error) {
+    console.error("❌ Error seeding materials:", error);
+  }
 };
 
 module.exports = seedMaterials;
